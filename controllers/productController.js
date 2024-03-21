@@ -1,6 +1,9 @@
+import mongoose from 'mongoose';
 import Product from '../models/productModel.js'
 
 
+
+//import messagesModel from '../models/messagesModel.js';
 
 /*
 POST /api/products 
@@ -14,33 +17,29 @@ public
  */
 export const createProduct = async (req, res) => {
     try {
-    //const { productName} = req.body;  // istället för title, ??döp den till Product ?? 
-
-    const { name, price, description, category, images } = req.body; // istället för title 
+    const { name, price, description, category, images } = req.body; 
+    
 
         if(!name || !price || !description || !category || !images) { // istället för title 
             res.status(400);
             throw new Error('All product fields are required');
         }
  
-        const newProduct = await Product.create({
-            name,
-            price,
-            description,
-            category,
-            images
-            
-        });
+        const newProduct = await Product.create({ name, price, description, category, images });
 
-        // if(!newProduct){
-        //     res.status(500);
-        //     throw new Error('Something went wrong when creating the product');
-        // }
+        if(!newProduct){
+            res.status(500);
+            throw new Error('Something went wrong creating the product')
+        };
 
         res.status(201).json(newProduct);
 }
 catch(err){
-    res.status(500).json({ error: err.message })
+    //res.status(500).json({ error: 'Error creating product' })
+    res.json({
+        message: err.message,
+        stack: process.env.NODE_ENV === 'development' ? err.stack : null
+    })
 }
     
 }
@@ -59,11 +58,32 @@ export const getProducts = async (req, res) => {
     catch(err){
         res.json({
             message: err.message,
-            stack: process.env.NODE_ENV === 'development' ? err.stack : null}) // Något fel här?
+            stack: process.env.NODE_ENV === 'development' ? err.stack : null}) 
 
 
     
 }}
+
+/**
+ * @description Get a single product from the database  
+ */
+export const getProductById = async (req, res) => {
+    try {
+        const product = await Product.findById()
+
+        if (!product) {
+            res.status(404);
+            throw new Error('Product not found');
+        }
+
+        res.json(product);
+    } catch (err) {
+        res.status(500).json({
+            message: err.message,
+            stack: process.env.NODE_ENV === 'development' ? err.stack : null
+        });
+    }
+};
 
 
 /**
@@ -71,15 +91,70 @@ export const getProducts = async (req, res) => {
  */
 
 export const updateProduct = async (req, res) => {
-    res.status(200).json({message: 'Update'})
+try {
+   
+        const id = req.params.id
+        if(!mongoose.isValidObjectId(id)){
+            res.status(400)
+            throw new Error ('You need to provide a valid ObjectId')
+        }
+        
+        const product = await Product.findByIdAndUpdate(id, req.body, { new: true })
+        
+
+        if(!product){
+            res.status(404);
+            throw new Error ('Product not found')
+        }
+        res.status(200).json(product)
+
+
+    } catch(err) {
+    res.json({
+        message: err.message,
+        stack: process.env.NODE_ENV === 'development' ? err.stack : null})
 }
 
+
+}
+
+//res.status(200).json({message: 'Update'})
+//`${URI}/orders`
 
 /**
  * @description Takes an id and Deletes product on the database  
  */
 
 export const deleteProduct = async (req, res) => {
-    res.status(200).json({message: 'Delete'})
+    try{
+        const id = req.params.id
+        if(!mongoose.isValidObjectId(id)){
+        res.status(400)
+        throw new Error ('You need to provide a valid ObjectId')
+    }
+
+    const product = await Product.findByIdAndDelete(id)
+
+    if(!product){
+        res.status(404);
+        throw new Error ('Product not found')
+    }
+    
+    res.status(200).json(product._id) // 
 }
+catch (err) {
+    res.json({
+        message: err.message,
+        stack:
+         process.env.NODE_ENV === 'development' ? err.stack : null})
+    }
+    
+    
+}
+
+
+
+
+
+
 

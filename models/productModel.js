@@ -5,13 +5,10 @@ const productSchema = Schema({
     price: { type: Number, required: true },
     description: { type: String, required: true },
     category: { type: String, required: true },
-    images: ["image1.jpg"]
-    
+    images: { type: [String], default: [] }
+}, {timestamps: true});
 
-
-}, {timestamps: true} )
-
-const Product = model('Product', productSchema) 
+const Product = model('Product', productSchema);
 
 export default Product;
  

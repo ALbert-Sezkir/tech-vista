@@ -1,6 +1,11 @@
 import express from 'express';
 import dbConnect from './server.js';
-import productRoutes from './routes/productRoutes.js';
+import { createMessage } from './controllers/messageController.js';
+
+
+
+
+
 const app = express(); 
 
 const PORT = process.env.PORT || 3000;
@@ -15,7 +20,16 @@ app.use(express.urlencoded({extended: false}));
 
 
 // Routes
-app.use('/api/products', productRoutes );
+app.use('/api/products');
+
+app.use(express.json()); // This middleware is needed to parse JSON request bodies
+app.use(express.urlencoded({extended: false}));
+
+app.post('/message', createMessage);
+
+
+
+
 
 
 export default app;
